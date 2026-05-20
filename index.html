@@ -174,7 +174,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
     <div class="kpi"><div class="kpi-lbl">Total Shifts</div><div class="kpi-val pk" id="ks">—</div><div class="kpi-sub">worked</div></div>
     <div class="kpi"><div class="kpi-lbl" id="lbl-units">Total Units</div><div class="kpi-val pk" id="ku">—</div><div class="kpi-sub" id="sub-units">sold</div></div>
     <div class="kpi"><div class="kpi-lbl" id="lbl-revenue">Total Revenue</div><div class="kpi-val" id="kr">—</div><div class="kpi-sub">total value</div></div>
-    <div class="kpi nt"><div class="kpi-lbl">Average RRP</div><div class="kpi-val" id="ka">—</div><div class="kpi-sub">per unit</div></div>
+    <div class="kpi nt"><div class="kpi-lbl">Revenue Per Hour</div><div class="kpi-val" id="ka">—</div><div class="kpi-sub">per hour worked</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg Units/Hour</div><div class="kpi-val" id="kp">—</div><div class="kpi-sub">per hour</div></div>
   </div>
 
@@ -213,7 +213,6 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
         <select class="sort-select" id="ch-sort" onchange="chSort=this.value;rCH(chQ)">
           <option value="units">Sort: Units</option>
           <option value="revenue">Sort: Revenue</option>
-          <option value="store">Sort: Store</option>
           <option value="name">Sort: Name</option>
         </select>
       </div>
@@ -221,7 +220,6 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
       <table class="dt"><thead><tr>
         <th>#</th>
         <th onclick="chSort='name';document.getElementById('ch-sort').value='name';rCH(chQ)">Champion</th>
-        <th onclick="chSort='store';document.getElementById('ch-sort').value='store';rCH(chQ)">Store</th>
         <th onclick="chSort='units';document.getElementById('ch-sort').value='units';rCH(chQ)">Units</th>
         <th onclick="chSort='revenue';document.getElementById('ch-sort').value='revenue';rCH(chQ)">Revenue</th>
       </tr></thead><tbody id="tch"></tbody></table>
@@ -237,7 +235,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
           <option value="revenue">Sort: Revenue</option>
           <option value="shifts">Sort: Shifts</option>
           <option value="retailer">Sort: Retailer Name</option>
-          <option value="rrp">Sort: Avg RRP</option>
+          <option value="rph">Sort: Rev/Hour</option>
           <option value="uph">Sort: Units/Hour</option>
         </select>
       </div>
@@ -246,7 +244,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
         <th onclick="rtSort='shifts';rRT()">Shifts</th>
         <th onclick="rtSort='units';rRT()">Units</th>
         <th onclick="rtSort='revenue';rRT()">Revenue</th>
-        <th onclick="rtSort='rrp';rRT()">Avg RRP</th>
+        <th onclick="rtSort='rph';rRT()">Rev/Hour</th>
         <th onclick="rtSort='uph';rRT()">Units/Hour</th>
       </tr></thead><tbody id="trt"></tbody></table>
     </div>
@@ -265,10 +263,10 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
 function checkPw() {
   const val = document.getElementById('pwi').value;
   const hash = Array.from(val).reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0).toString(16);
-  if(hash==='318ae907') {
+  if (hash === '318ae907') {
     const s = document.getElementById('pw-screen');
     s.style.transition = 'opacity .4s'; s.style.opacity = 0;
-    setTimeout(() => { s.style.display = 'none'; document.getElementById('main').style.display = 'block'; init(); }, 400);
+    setTimeout(() => { s.style.display='none'; document.getElementById('main').style.display='block'; init(); }, 400);
   } else {
     document.getElementById('pwe').textContent = 'Invalid password';
     document.getElementById('pwi').value = '';
@@ -389,7 +387,7 @@ function updKPI() {
   document.getElementById('ks').textContent = sh.toLocaleString();
   document.getElementById('ku').textContent = u.toLocaleString();
   document.getElementById('kr').textContent = fmtR(rv);
-  document.getElementById('ka').textContent = '$' + (u > 0 ? Math.round(rv / u) : 0);
+  document.getElementById('ka').textContent = hr > 0 ? '$' + Math.round(rv / hr).toLocaleString('en-AU') : '$0';
   document.getElementById('kp').textContent = hr > 0 ? (u / hr).toFixed(2) : '0.00';
 }
 
@@ -404,19 +402,7 @@ function updCharts() {
   CI.ccat = new Chart(document.getElementById('ccat'), {
     type: 'bar',
     data: { labels: CATS, datasets: [{ data: ct, backgroundColor: catBg, borderRadius: 6, borderSkipped: false }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: {
-          datalabels: {
-            display: true,
-            anchor: 'end',
-            align: 'top',
-            color: '#0B2545',
-            font: { family: 'Manrope', size: 11, weight: '700' },
-            formatter: (value) => Math.round(value)
-          },
-          legend: { display: false }
-        },
-        scales: { x: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } } } }
-  , plugins: [ChartDataLabels]
+    options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', color: '#0B2545', font: { family: 'Manrope', size: 11, weight: '700' }, formatter: v => Math.round(v) }, legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } } } }, plugins: [ChartDataLabels]
   });
 
   dc('csta');
@@ -425,20 +411,7 @@ function updCharts() {
   CI.csta = new Chart(document.getElementById('csta'), {
     type: 'doughnut',
     data: { labels: sk, datasets: [{ data: sv, backgroundColor: ['#E6007E','#0B2545','#FFD900','#FF5DA2','#13314B','#6B7280','#FF9F40'].slice(0, sk.length), borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'right', labels: { font: { family: 'Manrope', size: 12 }, padding: 14 } },
-        datalabels: {
-          display: true,
-          color: '#fff',
-          font: { family: 'Manrope', size: 12, weight: '700' },
-          formatter: (value) => Math.round(value),
-          textStrokeColor: 'rgba(0,0,0,0.3)',
-          textStrokeWidth: 2
-        }
-      }
-    },
-    plugins: [ChartDataLabels]
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Manrope', size: 12 }, padding: 14 } }, datalabels: { display: true, color: '#fff', font: { family: 'Manrope', size: 12, weight: '700' }, formatter: v => Math.round(v), textStrokeColor: 'rgba(0,0,0,0.3)', textStrokeWidth: 2 } } }, plugins: [ChartDataLabels]
   });
 
   dc('csto');
@@ -447,7 +420,7 @@ function updCharts() {
   CI.csto = new Chart(document.getElementById('csto'), {
     type: 'bar',
     data: { labels: t10s.map(([s]) => s.replace('Harvey Norman ', 'HN ').replace('The Good Guys ', 'TGG ')), datasets: [{ data: t10s.map(([, v]) => v), backgroundColor: '#E6007E', borderRadius: 4 }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false }, legend: { display: false } }, scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 10 } } } } }
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 10 } } } } }
   });
 
   dc('cdem');
@@ -456,7 +429,7 @@ function updCharts() {
   CI.cdem = new Chart(document.getElementById('cdem'), {
     type: 'bar',
     data: { labels: t10d.map(([n]) => n), datasets: [{ data: t10d.map(([, v]) => v), backgroundColor: '#0B2545', borderRadius: 4 }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false }, legend: { display: false } }, scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 10 } } } } }
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 10 } } } } }
   });
 }
 
@@ -493,7 +466,7 @@ function rST(q) {
 function rCH(q) {
   const rows = aggCh().filter(r => !q || r.e.toLowerCase().includes(q.toLowerCase()));
   document.getElementById('tch').innerHTML = rows.map((r, i) =>
-    `<tr class="${i === 0 ? 'r1' : ''}" onclick="showCM('${r.e.replace(/'/g, "\'")}')"><td class="rn">${i+1}</td><td><strong>${r.e}</strong></td><td style="font-size:11px;color:var(--muted)">${r.s}</td><td class="uv">${r.u}</td><td>${fmtR(r.rv)}</td></tr>`
+    `<tr class="${i === 0 ? 'r1' : ''}" onclick="showCM('${r.e.replace(/'/g, "\'")}')"><td class="rn">${i+1}</td><td><strong>${r.e}</strong></td><td class="uv">${r.u}</td><td>${fmtR(r.rv)}</td></tr>`
   ).join('');
 }
 function rRT() {
@@ -504,16 +477,16 @@ function rRT() {
     const hr = recs.reduce((s, r) => s + r[6], 0);
     const u = recs.reduce((s, r) => s + r[7], 0);
     const rv = recs.reduce((s, r) => s + r[8], 0);
-    return { ret, sh, u, rv, rrp: u > 0 ? Math.round(rv / u) : 0, uph: hr > 0 ? parseFloat((u / hr).toFixed(2)) : 0 };
+    return { ret, sh, u, rv, rph: hr > 0 ? Math.round(rv / hr) : 0, uph: hr > 0 ? parseFloat((u / hr).toFixed(2)) : 0 };
   });
   if (rtSort === 'units') rows.sort((a, b) => b.u - a.u);
   else if (rtSort === 'revenue') rows.sort((a, b) => b.rv - a.rv);
   else if (rtSort === 'shifts') rows.sort((a, b) => b.sh - a.sh);
   else if (rtSort === 'retailer') rows.sort((a, b) => a.ret.localeCompare(b.ret));
-  else if (rtSort === 'rrp') rows.sort((a, b) => b.rrp - a.rrp);
+  else if (rtSort === 'rph') rows.sort((a, b) => b.rph - a.rph);
   else rows.sort((a, b) => b.uph - a.uph);
   document.getElementById('trt').innerHTML = rows.map(x =>
-    `<tr><td><span class="badge ${bc(x.ret)}">${x.ret}</span></td><td>${x.sh}</td><td class="uv">${x.u}</td><td>${fmtR(x.rv)}</td><td>$${x.rrp}</td><td>${x.uph}</td></tr>`
+    `<tr><td><span class="badge ${bc(x.ret)}">${x.ret}</span></td><td>${x.sh}</td><td class="uv">${x.u}</td><td>${fmtR(x.rv)}</td><td>${fmtR(x.rph)}</td><td>${x.uph}</td></tr>`
   ).join('');
 }
 
@@ -586,15 +559,6 @@ function init() {
   apply();
 }
 
-
-function init() {
-  chip('cs', META.states, 'states');
-  chip('cr', META.retailers, 'retailers');
-  chip('cd', META.days, 'days');
-  chip('cc', CATS, 'categories');
-  buildSD();
-  apply();
-}
 </script>
 </body>
 </html>
